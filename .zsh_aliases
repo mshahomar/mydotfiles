@@ -195,3 +195,32 @@ aws_get_devops_ip() {
 
     echo "${serviceName} LoadBalancer IP: ${lbIP}"
 }
+
+## To get latest tag from a specified ECR repo
+aws_ecr_get_latest() {
+    echo "Enter name of ECR repository: "
+    read -r targetRepo
+
+    validRepos=($(aws ecr describe-repositories --profile my-profile-1 --region ap-southeast-2 --query 'repositories[].repositoryName' --output text))
+    found=false
+    for repo in "${validRepos[@]}"; do
+        if [[ "$repo" == "$targetRepo" ]]; then
+            found=true
+            break
+        fi
+    done
+
+    if [[ "$found" == true ]]; then
+        echo "Repository found!"
+        aws ecr describe-images \
+            --repository-name "$targetRepo" \
+            --profile my-profile-1 \
+            --region ap-southeast-2 \
+            --query 'imageDetails[?not_null(imageTags[0])].{Tag: imageTags[0], PushedDate: imagePushedAt}' \
+            --output json | \
+        jq 'group_by(.Tag | split("-")[0]) | map(max_by(.PushedDate)) | .[].Tag'
+    else
+        echo "Repository $targetRepo is not found!"
+        return 1
+    fi
+}
