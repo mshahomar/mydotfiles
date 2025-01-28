@@ -1,0 +1,197 @@
+
+### VI Mode!!! ###
+bindkey jj vi-cmd-mode
+
+alias cat='bat --paging=never --style=plain -f --theme="Monokai Extended Origin"'
+alias rat='lolcat'
+alias v=nvim
+alias m='glow'
+alias vd='nvim -d'
+alias vdr='nvim -d -R'
+alias ls='lsd'
+alias ll='ls -la'
+alias lr='ls -lahtr'
+alias llt='ls -la --tree'
+alias lt='ls --tree'
+alias top='btop'
+alias htop='btop'
+alias python='python3'
+
+### I love pbcopy to copy to clipboard. This is a replacement ###
+alias pbcopy='xsel --clipboard'
+
+### Dirs ###
+alias ..="cd .."
+alias ...="cd ../.."
+alias ....="cd ../../.."
+alias .....="cd ../../../.."
+alias ......="cd ../../../../.."
+### Git ###
+alias gc="git commit -m"
+alias gca="git commit -a -m"
+alias gp="git push origin HEAD"
+alias gpu="git pull origin"
+alias gst="git status"
+alias glog="git log --graph --topo-order --pretty='%w(100,0,6)%C(yellow)%h%C(bold)%C(black)%d %C(cyan)%ar %C(green)%an%n%C(bold)%C(white)%s %N' --abbrev-commit"
+alias gdiff="git diff"
+#alias gco="git checkout"
+alias gb='git branch'
+alias gba='git branch -a'
+alias gadd='git add'
+alias ga='git add -p'
+alias gcoall='git checkout -- .'
+alias gr='git remote'
+alias gre='git reset'
+alias glag='git log --all --graph'
+# git checkout <branch name>
+alias gco='git checkout $1'
+# Get update from remote fetch
+alias gf='git fetch'
+alias gl='git pull'
+alias ge='git clone'
+# git push <remote repo name, e.g. origin> <remote branch name>
+alias gpo='git push $1 $2'
+
+### MacOS style to open finder/explorer ###
+alias open='explorer.exe'
+
+### Password Generator ###
+alias pass16='tr -dc A-Za-z0-9 < /dev/urandom | head -c 16'
+alias pass32='tr -dc A-Za-z0-9 < /dev/urandom | head -c 32'
+alias pass64b='openssl rand -base64 32'
+alias pass32s="tr -dc 'A-Za-z0-9!#$%&()?^_{}' </dev/urandom | head -c 32 ; echo"
+
+### Kubernetes ###
+alias k='kubectl'
+complete -o default -F __start_kubectl k
+alias kgn='kubectl get namespaces'
+alias kccc='kubectl config current-context'
+alias kcuc='kubectl config use-context $1'
+alias kcgc='kubectl config get-contexts'
+alias kgp='kubectl get pods'
+alias kga='kubectl get all'
+alias kgs='kubectl get svc'
+alias kd='kubectl describe'
+alias kds='kubectl describe svc'
+alias kgd='kubectl get deploy'
+alias kgc='kubectl get configmap'
+alias kdc='kubectl describe configmap'
+alias krs='kubectl rollout status'
+alias krh='kubectl rollout history deployment'
+alias kdp='kubectl describe pod $1'
+# kubectl port-forward <pod name> <port #>
+alias kpf='kubectl port-forward $1 $2'
+# kubectl attach <pod name> -i
+alias ka='kubectl attach $1 -i'
+# kubectl exec <pod> -- <command>
+alias ke='kubectl exec $1 -- $2'
+# kubectl exec --stdin --tty <pod name> -- /bin/bash
+alias keb='kubectl exec -n $1 --stdin --tty $2 -- /bin/bash'
+alias kes='kubectl exec -n $1 --stdin --tty $2 -- /bin/sh'
+alias kbb='kubectl run -i --tty busybox --image=busybox --restart=Never -- sh'
+alias ka="kubectl apply -f"
+# kubectx & kubens - install first using brew install kubectx:
+alias kcx="kubectx"
+alias kns="kubens"
+
+### Docker ###
+alias dc="docker compose"
+
+##### My Custom Functions ######
+#!/bin/bash
+
+kpodinfo() {
+    # Get all nodes info in one call
+    local node_info=$(kubectl get nodes -o json)
+    # Get cluster version
+    local cluster_version=$(kubectl version -o json | jq -r '.serverVersion.gitVersion')
+    # Get all pods with node info
+    kubectl get pods -A -o custom-columns=NAME:.metadata.name,NODE:.spec.nodeName --no-headers | \
+    while read pod_name node_name; do
+        local kernel_version=$(echo "$node_info" | jq -r ".items[] | select(.metadata.name == \"$node_name\") | .status.nodeInfo.kernelVersion")
+        local node_creation=$(echo "$node_info" | jq -r ".items[] | select(.metadata.name == \"$node_name\") | .metadata.creationTimestamp")
+        local node_age=$(date -d "$node_creation" +"%d days %H hours %M minutes")
+        echo "Pod: $pod_name, Node: $node_name, Node Age: $node_age, Kernel Version: $kernel_version, Cluster Version: $cluster_version"
+    done
+}
+
+## To list Security Hub findings because my previous boss was a nut job:
+aws_sh_get_findings() {
+    aws securityhub get-findings --filters '{"ComplianceStatus": [{"Value": "FAILED","Comparison": "EQUALS"}]}' \
+    | jq -r '.Findings[] | [.Severity.Label, .Id, .Resources[0].Id] | @csv' \
+    | sed '1iSeverity,ID,AffectedResource'
+}
+
+## To list findings from ECR enhanced scanning and reported in AWS Inspector:
+aws_inspector_list_findings() {
+    IMAGE_SHA="$1"
+    OUTPUT_CSV="$2.csv"
+
+    if [ "$#" -ne 2 ]; then
+        echo "Usage: aws_inspector_list_findings <sha256:TARGET IMAGE SHA256> <FILE NAME TO EXPORT TO>"
+        #exit 1
+    else
+        aws inspector2 list-findings \
+          --filter "{\"ecrImageHash\":[{\"comparison\":\"EQUALS\",\"value\":\"$IMAGE_SHA\"}]}" \
+          --query "findings[].{
+            Title: title,
+            Severity: severity,
+            Description: description,
+            VulnerabilityId: packageVulnerabilityDetails.vulnerabilityId || 'N/A',
+            PackageManager: packageVulnerabilityDetails.vulnerablePackages[0].packageManager || 'N/A',
+            VulnerablePackages: join(', ', packageVulnerabilityDetails.vulnerablePackages[].name || ['N/A']),
+            FilePath: join(', ', packageVulnerabilityDetails.vulnerablePackages[].filePath || ['N/A'])
+          }" \
+          --no-paginate --output json --profile my-profile-1 --region ap-southeast-2 | \
+        jq -r '
+          sort_by(.Severity) |
+          (.[0] | keys_unsorted) as $keys |
+          $keys, map([.[ $keys[] ]])[] |
+          @csv
+        ' > $OUTPUT_CSV
+    fi
+}
+
+## To spoof CICD components in /etc/hosts for LB not publicly available:
+aws_get_devops_ip() {
+    echo "Enter which CI/CD LoadBalancer IP to lookup (gitlab/jenkins/nexus/sonarqube/selenium):"
+    # -r to prevent backslash interpretation
+    read -r serviceName
+
+    validServices=("gitlab" "jenkins" "nexus" "sonarqube" "selenium")
+    if [[ ! " ${validServices[@]} " =~ " ${serviceName} " ]]; then
+        echo "Error: Invalid service name. Please choose from ${validServices[*]}"
+        return 1
+    fi
+
+    # special case for sonarqube the name is 'sonarqub'. Don't blame me, blame AWS ;)
+    if [[ "$serviceName" == "sonarqube" ]]; then
+        serviceName="sonarqub"
+        echo ">>Looking up ${serviceName}"
+    else
+        echo "Looking up ${serviceName}"
+    fi
+
+    # From below aws cli command grab only values that matches lbIP
+    lb=$(aws elbv2 describe-load-balancers --profile my-profile-1 --region ap-southeast-2 --query "LoadBalancers[?contains(DNSName, '${serviceName}')].DNSName" --output text)
+
+    if [[ $? -eq 255 ]]; then
+        echo "Please run aws sso login --sso-session <your-session-name>"
+        return 1
+    fi
+
+    if [[ -z "${lb}" ]]; then
+        echo "Error: No load balancer found for ${serviceName}"
+        return 1
+    fi
+
+    # Get IP address
+    lbIP=$(dig +short ${lb} |head -n 1)
+
+    if [[ -z "${lbIP}" ]]; then
+        echo "Error: Could not resolve IP address for ${lb}"
+        return 1
+    fi
+
+    echo "${serviceName} LoadBalancer IP: ${lbIP}"
+}
