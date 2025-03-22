@@ -13,6 +13,8 @@ alias ll='ls -la'
 alias lr='ls -lahtr'
 alias llt='ls -la --tree'
 alias lt='ls --tree'
+#alias ll="eza --icons --group-directories-first -la"
+#alias lt="eza --icons --group-directories-first -la --tree"
 alias top='btop'
 alias htop='btop'
 alias python='python3'
@@ -20,13 +22,13 @@ alias python='python3'
 ### I love pbcopy to copy to clipboard. This is a replacement ###
 alias pbcopy='xsel --clipboard'
 
-### Dirs ###
+# Dirs
 alias ..="cd .."
 alias ...="cd ../.."
 alias ....="cd ../../.."
 alias .....="cd ../../../.."
 alias ......="cd ../../../../.."
-### Git ###
+# Git
 alias gc="git commit -m"
 alias gca="git commit -a -m"
 alias gp="git push origin HEAD"
@@ -52,10 +54,10 @@ alias ge='git clone'
 # git push <remote repo name, e.g. origin> <remote branch name>
 alias gpo='git push $1 $2'
 
-### MacOS style to open finder/explorer ###
+## MacOS style to open finder/explorer
 alias open='explorer.exe'
 
-### Password Generator ###
+## Generate password ##
 alias pass16='tr -dc A-Za-z0-9 < /dev/urandom | head -c 16'
 alias pass32='tr -dc A-Za-z0-9 < /dev/urandom | head -c 32'
 alias pass64b='openssl rand -base64 32'
@@ -222,5 +224,31 @@ aws_ecr_get_latest() {
     else
         echo "Repository $targetRepo is not found!"
         return 1
+    fi
+}
+
+search_bw() {
+    local search_term="$1"
+
+    local results=($(bw list items --search "$search_term" | jq -r '.[] | .name'))
+
+    echo "results: $results"
+
+    #output=$(some_command)
+    #if [[ "$output" == "You are not logged in." ]]; then
+    #  echo "Please log in to continue."
+    #else
+    #  echo "Command executed successfully."
+    #fi
+
+    if [[ -z "$results" ]]; then
+        echo "No results found for '$search_term'."
+        return 1
+    else
+        echo "Results:"
+        for i in "${!results[@]}"; do
+            echo "$((i + 1)). ${results[$i]}"
+        done
+        return 0
     fi
 }
