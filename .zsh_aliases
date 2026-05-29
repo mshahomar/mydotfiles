@@ -28,6 +28,10 @@ alias ...="cd ../.."
 alias ....="cd ../../.."
 alias .....="cd ../../../.."
 alias ......="cd ../../../../.."
+
+# alias about='neofetch'
+alias about='fastfetch'
+
 # Git
 alias gc="git commit -m"
 alias gca="git commit -a -m"
@@ -53,6 +57,7 @@ alias gl='git pull'
 alias ge='git clone'
 # git push <remote repo name, e.g. origin> <remote branch name>
 alias gpo='git push $1 $2'
+alias lg='lazygit'
 
 ## MacOS style to open finder/explorer
 alias open='explorer.exe'
@@ -98,6 +103,9 @@ alias kns="kubens"
 
 ### Docker ###
 alias dc="docker compose"
+
+## Torrent ##
+alias tc="transmission-cli"
 
 ##### My Custom Functions ######
 #!/bin/bash
