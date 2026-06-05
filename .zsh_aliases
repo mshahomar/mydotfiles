@@ -238,31 +238,32 @@ aws_ecr_get_latest() {
     fi
 }
 
-search_bw() {
-    local search_term="$1"
-
-    local results=($(bw list items --search "$search_term" | jq -r '.[] | .name'))
-
-    echo "results: $results"
-
-    #output=$(some_command)
-    #if [[ "$output" == "You are not logged in." ]]; then
-    #  echo "Please log in to continue."
-    #else
-    #  echo "Command executed successfully."
-    #fi
-
-    if [[ -z "$results" ]]; then
-        echo "No results found for '$search_term'."
-        return 1
-    else
-        echo "Results:"
-        for i in "${!results[@]}"; do
-            echo "$((i + 1)). ${results[$i]}"
-        done
-        return 0
-    fi
-}
+## BITWARDEN CLI - Since recent security breach on bitwarden, I have been using it less and less. But I still want to have a function to search for items in my vault. This is a work in progress, will update later when I have time to finish it.
+# search_bw() {
+#     local search_term="$1"
+#
+#     local results=($(bw list items --search "$search_term" | jq -r '.[] | .name'))
+#
+#     echo "results: $results"
+#
+#     #output=$(some_command)
+#     #if [[ "$output" == "You are not logged in." ]]; then
+#     #  echo "Please log in to continue."
+#     #else
+#     #  echo "Command executed successfully."
+#     #fi
+#
+#     if [[ -z "$results" ]]; then
+#         echo "No results found for '$search_term'."
+#         return 1
+#     else
+#         echo "Results:"
+#         for i in "${!results[@]}"; do
+#             echo "$((i + 1)). ${results[$i]}"
+#         done
+#         return 0
+#     fi
+# }
 
 mpv_play_alquran1() {
   # https://music.youtube.com/playlist?list=PLJgUdLeY7ciPRGKvafO4G4Y2xcmi2ZN0c
