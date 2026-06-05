@@ -63,8 +63,9 @@ alias lg='lazygit'
 alias open='explorer.exe'
 
 ## Generate password ##
-alias pass16='tr -dc A-Za-z0-9 < /dev/urandom | head -c 16'
-alias pass32='tr -dc A-Za-z0-9 < /dev/urandom | head -c 32'
+#LC_ALL=C tr -dc A-Za-z0-9 < /dev/urandom | head -c 16
+alias pass16="LC_ALL=C tr -dc A-Za-z0-9 < /dev/urandom | head -c 16 && echo ''"
+alias pass32="LC_ALL=C tr -dc A-Za-z0-9 < /dev/urandom | head -c 32 && echo ''"
 alias pass64b='openssl rand -base64 32'
 alias pass32s="tr -dc 'A-Za-z0-9!#$%&()?^_{}' </dev/urandom | head -c 32 ; echo"
 
@@ -107,6 +108,8 @@ alias dc="docker compose"
 ## Torrent ##
 alias tc="transmission-cli"
 
+## Mole - Disk cleanup tool for MacOS/Linux. Make sure to install first using brew install mole (Ref: https://github.com/tw93/mole)
+alias cleanup='mole'
 ##### My Custom Functions ######
 #!/bin/bash
 
@@ -260,3 +263,165 @@ search_bw() {
         return 0
     fi
 }
+
+mpv_play_alquran1() {
+  # https://music.youtube.com/playlist?list=PLJgUdLeY7ciPRGKvafO4G4Y2xcmi2ZN0c
+  # Quit using 'q'
+  # Set volume: if $1 is provided, use it; otherwise, default to 70%
+  local VOL=${1:-70}
+  local URL="https://music.youtube.com/playlist?list=PLJgUdLeY7ciPRGKvafO4G4Y2xcmi2ZN0c"
+
+  if [ "$#" -eq 1 ]; then
+    echo "📻 Playing Al-Qur'an Playlist: Mixed Qari with volume level: $VOL% ☪️ "
+  else
+    echo "📻 Playing Al-Qur'an Playlist: Mixed Qari with volume level: $VOL% ☪️ "
+  fi
+
+  mpv --volume=$VOL --no-video \
+    --quiet --script-opts=ytdl_hook-ytdl_path=yt-dlp \
+    --ytdl-raw-options="cookies-from-browser=chrome,yes-playlist=,format=bestaudio/best" \
+    "$URL" 2>/dev/null
+}
+
+mpv_play_alquran2() {
+  # https://music.youtube.com/playlist?list=PLJgUdLeY7ciOeRLpAjq643Nq0qvpEZzX_
+  # Quit using 'q'
+  # Set volume: if $1 is provided, use it; otherwise, default to 70%
+  local VOL=${1:-70}
+  local URL="https://music.youtube.com/playlist?list=PLJgUdLeY7ciOeRLpAjq643Nq0qvpEZzX_"
+
+  if [ "$#" -eq 1 ]; then
+    echo "📻 Playing Al-Qur'an Playlist: Abdul Basit with volume level: $VOL% ☪️ "
+  else
+    echo "📻 Playing Al-Qur'an Playlist: Abdul Basit with volume level: $VOL% ☪️ "
+  fi
+
+  mpv --volume=$VOL --no-video \
+    --quiet --script-opts=ytdl_hook-ytdl_path=yt-dlp \
+    --ytdl-raw-options="cookies-from-browser=chrome,yes-playlist=,format=bestaudio/best" \
+    "$URL" 2>/dev/null
+
+}
+
+mpv_play_jazzfm() {
+  # https://radio.garden/listen/jazz-lounge/bcbHCByq
+  # Quit using 'q'
+  # Set volume: if $1 is provided, use it; otherwise, default to 70%
+  local VOL=${1:-70}
+  local URL="https://eu8.fastcast4u.com/proxy/lch?mp=/1/;"
+
+  if [ "$#" -eq 1 ]; then
+    echo "📻 Playing Suria FM with volume level: $VOL% 🎶"
+  else
+    echo "Usage: mpv_play_suriafm <volume level (0-100)>. Using default 70% 🔊"
+    echo "📻 Playing Suria FM with volume level: $VOL% 🎶"
+  fi
+
+  mpv --volume=$VOL --no-video --quiet \
+    "$URL" 2>/dev/null
+
+}
+
+mpv_play_mixfm() {
+  # Quit using 'q'
+  # Set volume: if $1 is provided, use it; otherwise, default to 70%
+  local VOL=${1:-70}
+  local URL="https://n04-us.rcs.revma.com/v5pq3htbv4uvv?rj-ttl=5&rj-tok=AAABnpZxBlQAT6FV26QuitU5uQ"
+
+  if [ "$#" -eq 1 ]; then
+    echo "📻 Playing Suria FM with volume level: $VOL% 🎶"
+  else
+    echo "Usage: mpv_play_suriafm <volume level (0-100)>. Using default 70% 🔊"
+    echo "📻 Playing Suria FM with volume level: $VOL% 🎶"
+  fi
+
+  mpv --volume=$VOL --no-video --quiet \
+    "$URL" 2>/dev/null
+
+}
+
+mpv_play_suriafm() {
+  # https://radio.garden/listen/suria-fm-101-4/08Z93CaJ
+  # Quit using 'q'
+  # Set volume: if $1 is provided, use it; otherwise, default to 70%
+  local VOL=${1:-70}
+  local URL="https://22283.live.streamtheworld.com/SURIA_FMAAC.aac"
+
+  if [ "$#" -eq 1 ]; then
+    echo "📻 Playing Suria FM with volume level: $VOL% 🎶"
+  else
+    echo "Usage: mpv_play_suriafm <volume level (0-100)>. Using default 70% 🔊"
+    echo "📻 Playing Suria FM with volume level: $VOL% 🎶"
+  fi
+
+  mpv --volume=$VOL --no-video --quiet \
+    "$URL" 2>/dev/null
+
+}
+
+# Interactive global find and replace function using 'sd'
+smart_replace() {
+    # 1. Check if sd is installed
+    if ! command -v sd &> /dev/null; then
+        echo "❌ 'sd' command is not installed."
+        echo -n "❓ Would you like to install it now using 'brew install sd'? (y/n): "
+        read -r install_resp
+        
+        if [[ "$install_resp" =~ ^[Yy]$ ]]; then
+            echo "⏳ Installing sd via Homebrew..."
+            brew install sd
+            
+            if ! command -v sd &> /dev/null; then
+                echo "❌ Homebrew installation failed. Exiting."
+                return 1
+            fi
+        else
+            echo "🛑 Installation declined. Exiting function."
+            return 1
+        fi
+    fi
+
+    # 2. Get user input for search and replace targets
+    echo -n "🔍 Enter the string to SEARCH for: "
+    read -r search_str
+    if [[ -z "$search_str" ]]; then
+        echo "❌ Search string cannot be empty. Exiting."
+        return 1
+    fi
+
+    echo -n "✏️  Enter the REPLACEMENT string: "
+    read -r replace_str
+
+    # 3. Find files matching the search string
+    local files=(${(f)"$(grep -rl "$search_str" . 2>/dev/null)"})
+
+    if [[ ${#files[@]} -eq 0 || -z "${files}" ]]; then
+        echo "🎉 No matching files found containing '$search_str'."
+        return 0
+    fi
+
+    echo "\nFound matches in ${#files[@]} file(s). Starting confirmation loop..."
+
+    # 4. Interactive loop over files
+    for file in "${files[@]}"; do
+        [[ -z "$file" ]] && continue
+
+        echo "\n----------------------------------------"
+        echo "📄 File: $file"
+        echo "🔍 Preview of changes:"
+        
+        # Display the visual diff layout using sd
+        sd "$search_str" "$replace_str" "$file" --preview
+        
+        echo -n "⚠️  Apply these changes to this file? (y/n): "
+        read -r response
+        if [[ "$response" =~ ^[Yy]$ ]]; then
+            sd "$search_str" "$replace_str" "$file"
+            echo "✅ Updated!"
+        else
+            echo "⏭️  Skipped."
+        fi
+    done
+    echo "\n✨ Replacement process complete."
+}
+
